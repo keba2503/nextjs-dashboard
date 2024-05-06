@@ -9,6 +9,39 @@ import {
     User,
 } from './definitions';
 
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config(); // Cargar variables de entorno desde .env
+
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined in the environment variables.');
+}
+
+const url = new URL(process.env.DATABASE_URL);
+const dbConfig = {
+    host: url.hostname,
+    user: url.username,
+    password: url.password,
+    database: url.pathname.substr(1),
+    port: Number(url.port),
+    connectionLimit: Number(url.searchParams.get('connection_limit') || 10)
+};
+
+const pool = mysql.createPool(dbConfig);
+
+export async function fetchAllUsers() {
+    try {
+        const [rows, fields] = await pool.query('SELECT * FROM user');
+
+        return rows;
+    } catch (error) {
+        console.error('Database Error:', error);
+        throw new Error('Failed to fetch user data.');
+    }
+}
+
+
 const ITEMS_PER_PAGE = 6;
 
 import {formatCurrency} from './utils';
