@@ -11,8 +11,9 @@ import {
 
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import {formatCurrency} from './utils';
 
-dotenv.config(); // Cargar variables de entorno desde .env
+dotenv.config();
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined in the environment variables.');
@@ -44,13 +45,12 @@ export async function fetchAllUsers() {
 
 const ITEMS_PER_PAGE = 6;
 
-import {formatCurrency} from './utils';
-
 export async function fetchRevenue() {
     try {
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
-        const data = await sql<Revenue>`SELECT * FROM revenue`;
+        const data = await sql<Revenue>`SELECT *
+                                        FROM revenue`;
 
         return data.rows;
     } catch (error) {
@@ -63,7 +63,8 @@ export async function fetchLatestInvoices() {
     try {
         const data = await sql<LatestInvoiceRaw>`
             SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
-            FROM invoices JOIN customers ON invoices.customer_id = customers.id
+            FROM invoices
+                     JOIN customers ON invoices.customer_id = customers.id
             ORDER BY invoices.date DESC LIMIT 5`;
 
         const latestInvoices = data.rows.map((invoice) => ({
@@ -79,9 +80,13 @@ export async function fetchLatestInvoices() {
 
 export async function fetchCardData() {
     try {
-        const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-        const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-        const invoiceStatusPromise = sql`SELECT SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END)    AS "paid", SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending" FROM invoices`;
+        const invoiceCountPromise = sql`SELECT COUNT(*)
+                                        FROM invoices`;
+        const customerCountPromise = sql`SELECT COUNT(*)
+                                         FROM customers`;
+        const invoiceStatusPromise = sql`SELECT SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END)    AS "paid",
+                                                SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
+                                         FROM invoices`;
 
         const data = await Promise.all([
             invoiceCountPromise,
@@ -121,7 +126,8 @@ export async function fetchFilteredInvoices(
                    customers.name,
                    customers.email,
                    customers.image_url
-            FROM invoices JOIN customers ON invoices.customer_id = customers.id
+            FROM invoices
+                     JOIN customers ON invoices.customer_id = customers.id
             WHERE customers.name ILIKE ${`%${query}%`}
                OR
                 customers.email ILIKE ${`%${query}%`}

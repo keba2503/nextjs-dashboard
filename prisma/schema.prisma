@@ -7,11 +7,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
+model users {
   id       Int     @id @default(autoincrement())
   name     String? @db.VarChar(255)
   lastname String? @db.VarChar(255)
   email    String  @db.VarChar(255)
-  phone    String? @db.VarChar(255)
   password String  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updateAt DateTime @default(now())
+}
+
+model Camper {
+  id       Int       @id @default(autoincrement())
+  nombre   String
+  bookings Booking[]
+}
+
+model Booking {
+  id                 Int      @id @default(autoincrement())
+  camper             Camper?  @relation(fields: [camperId], references: [id])
+  camperId           Int?
+  entradaDia         Int?
+  entradaHora        String?
+  entradaMes         Int?
+  salidaDia          Int?
+  salidaHora         String?
+  salidaMes          Int?
+  salidaAnio         Int?
+  importe            Float?
+  estadoReserva      String?
+  nombreCliente      String?
+  plataforma         String?
+  dias               Int?
+  descripcion        String?  @db.VarChar(1000)
+  importeExtras      Float?
+  pagadoExtras       Float?
+  pagoTotalConExtras Float?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now())
+
+  @@index([camperId], name: "camperId")
+}
+
+
+model expenses {
+  id              Int      @id @default(autoincrement())
+  concepto        String?
+  importe         Float?
+  tipoPago        String?
+  importeMensual  Float?
+  importeAnual    Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+}
+
+model repairs {
+  id        Int      @id @default(autoincrement())
+  mes       Int?
+  anio      Int?
+  concepto  String?
+  importe   Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model credit {
+  id              Int      @id @default(autoincrement())
+  mes             Int?
+  anio            Int?
+  cuotaMensual    Float?
+  pagoAdicional   Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
 }
