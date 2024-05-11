@@ -5,13 +5,13 @@ import {PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function PUT(request, { params }) {
+export async function PUT(request, {params}) {
     try {
         const data = await request.json();
         console.log(data);
 
         const id = parseInt(params.id);
-        const { name, lastname, email, password } = data;
+        const {name, lastname, email, password} = data;
 
         const updateData = {};
 
@@ -29,7 +29,7 @@ export async function PUT(request, { params }) {
         }
 
         const updateUser = await prisma.users.update({
-            where: { id },
+            where: {id},
             data: updateData,
         });
 
@@ -46,4 +46,18 @@ export async function PUT(request, { params }) {
     }
 }
 
-
+export async function DELETE(request, {params}) {
+    try {
+        const id = parseInt(params.id);
+        const deletedUser = await prisma.users.delete({
+            where: {id}
+        });
+        return NextResponse.json(deletedUser);
+    } catch (error) {
+        console.error("Error deleting user", error);
+        return NextResponse.error
+        (
+            "Internal server Error", 500
+        )
+    }
+}
