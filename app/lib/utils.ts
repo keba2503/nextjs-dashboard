@@ -1,15 +1,15 @@
 import { Revenue } from './definitions';
 
 export const formatCurrency = (amount: number) => {
-  return (amount / 100).toLocaleString('en-US', {
+  return (amount).toLocaleString('es-ES', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
   });
 };
 
 export const formatDateToLocal = (
   dateStr: string,
-  locale: string = 'en-US',
+  locale: string = 'es-ES',
 ) => {
   const date = new Date(dateStr);
   const options: Intl.DateTimeFormatOptions = {
@@ -20,6 +20,18 @@ export const formatDateToLocal = (
   const formatter = new Intl.DateTimeFormat(locale, options);
   return formatter.format(date);
 };
+export function getCamperClass(camperId: number): string {
+  switch (camperId) {
+    case 1:
+      return 'inikDark';
+    case 2:
+      return 'iniklight';
+    case 3:
+      return 'inikCar';
+    default:
+      return '';
+  }
+}
 
 export const generateYAxis = (revenue: Revenue[]) => {
   // Calculate what labels we need to display on the y-axis

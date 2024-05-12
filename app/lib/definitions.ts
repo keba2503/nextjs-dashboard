@@ -86,3 +86,24 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+export type Reserva = {
+  id: number;
+  camperId: number;
+  camperLabel?: string;
+  fechaEntrada: string;
+  horaEntrada: string;
+  fechaSalida: string;
+  horaSalida: string;
+  importe: number;
+  estadoReserva: string;
+  estadoLabel?: string;
+  nombreCliente: string;
+  plataforma: string;
+  plataformaLabel?: string;
+  dias: number;
+  descripcion: string;
+  importeExtras: number;
+  pagadoExtras: number;
+  pagoTotalConExtras: number;
+}
