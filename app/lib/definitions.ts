@@ -97,7 +97,7 @@ export type Reserva = {
   horaSalida: string;
   importe: number;
   estadoReserva: string;
-  estadoLabel?: string;
+  estadoReservaLabel?: string;
   nombreCliente: string;
   plataforma: string;
   plataformaLabel?: string;
@@ -107,3 +107,19 @@ export type Reserva = {
   pagadoExtras: number;
   pagoTotalConExtras: number;
 }
+
+export type Camper = {
+  id: number;
+  nombre: string;
+}
+
+export type Estado = {
+  id: number;
+  nombre: string;
+}
+
+export type Plataforma = {
+  id: number;
+  nombre: string;
+}
+

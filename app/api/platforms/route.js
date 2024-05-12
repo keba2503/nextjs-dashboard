@@ -16,29 +16,14 @@ async function connectToDatabase() {
 export async function GET() {
     try {
         const connection = await connectToDatabase();
-        const [rows] = await connection.query(`
-            SELECT 
-                Booking.*, 
-                Camper.nombre AS camperLabel, 
-                plataforma.nombre AS plataformaLabel, 
-                estado.nombre AS estadoReservaLabel
-            FROM 
-                Booking
-            LEFT JOIN 
-                Camper ON Booking.camperId = Camper.id
-            LEFT JOIN 
-                plataforma ON Booking.plataforma = plataforma.id
-            LEFT JOIN 
-                estado ON Booking.estadoReserva = estado.id
-        `);
+        const [rows] = await connection.query("SELECT * FROM plataforma");
         await connection.end();
         return NextResponse.json(rows);
     } catch (error) {
-        console.error("Error fetching bookings", error);
+        console.error("Error fetching users", error);
         return NextResponse.error(
             "Internal Server Error", 500
         );
     }
 }
-
 

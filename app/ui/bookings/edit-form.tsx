@@ -1,13 +1,19 @@
 'use client';
 
-import {useState} from 'react';
-import {Reserva} from '@/app/lib/definitions';
+import {useEffect, useState} from 'react';
+import {Camper, Estado, Plataforma, Reserva} from '@/app/lib/definitions';
 import Link from 'next/link';
 import {Button} from '@/app/ui/button';
-import {formatDateToLocal, getCamperClass} from "@/app/lib/utils";
+import {formatDateToLocal} from "@/app/lib/utils";
 
 export default function EditBookingForm({reserva}: { reserva: Reserva }) {
+    const [campers, setCampers] = useState<Camper[]>([]);
+    const [estados, setEstados] = useState<Estado[]>([]);
+    const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+
     const [formData, setFormData] = useState({
+        camperId: reserva.camperId,
         fechaEntrada: reserva.fechaEntrada,
         horaEntrada: reserva.horaEntrada,
         fechaSalida: reserva.fechaSalida,
@@ -42,6 +48,7 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                 body: JSON.stringify(formData),
             });
             if (response.ok) {
+                setSaveSuccess(true);
                 console.log("La reserva se actualizó correctamente.");
             } else {
                 const errorData = await response.json();
@@ -50,6 +57,43 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
         } catch (error) {
             console.error("Error de red:", error);
         }
+    };
+
+    const handleModalOk = () => {
+        setSaveSuccess(false);
+        window.location.href = "/dashboard/bookings";
+    };
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [campersRes, estadosRes, plataformasRes] = await Promise.all([
+                    fetch('/api/campers'),
+                    fetch('/api/status'),
+                    fetch('/api/platforms')
+                ]);
+
+                if (campersRes.ok && estadosRes.ok && plataformasRes.ok) {
+                    const campersData = await campersRes.json();
+                    const estadosData = await estadosRes.json();
+                    const plataformasData = await plataformasRes.json();
+                    setCampers(campersData);
+                    setEstados(estadosData);
+                    setPlataformas(plataformasData);
+                } else {
+                    console.error('Error al obtener los datos:', campersRes.statusText, estadosRes.statusText, plataformasRes.statusText);
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const [fechaEntrada, setFechaEntrada] = useState<Date | null>(new Date());
+
+    const handleChangeDate = (date: Date | null) => {
+        setFechaEntrada(date);
     };
 
     return (
@@ -72,14 +116,20 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
                         Plataforma
                     </label>
-                    <input
-                        type="text"
-                        id="fechaEntrada"
-                        name="fechaEntrada"
-                        value={reserva.plataforma}
+                    <select
+                        id="plataforma"
+                        name="plataforma"
+                        value={formData.plataforma}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
-                    />
+                    >
+                        <option value="">Selecciona una plataforma</option>
+                        {plataformas.map(plataforma => (
+                            <option key={plataforma.id} value={plataforma.id}>
+                                {plataforma.nombre}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className="mb-4">
                     <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
@@ -98,14 +148,20 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
                         Camper
                     </label>
-                    <input
-                        type="text"
-                        id="fechaEntrada"
-                        name="fechaEntrada"
-                        value={getCamperClass(reserva.camperId)}
+                    <select
+                        id="camperId"
+                        name="camperId"
+                        value={formData.camperId}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
-                    />
+                    >
+                        <option value="">Selecciona un Camper</option>
+                        {campers.map(camper => (
+                            <option key={camper.id} value={camper.id}>
+                                {camper.nombre}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="mb-4">
@@ -113,15 +169,14 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         Fecha de Entrada
                     </label>
                     <input
-                        type="text"
+                        type="date"
                         id="fechaEntrada"
                         name="fechaEntrada"
-                        value={formatDateToLocal(reserva.fechaEntrada)}
+                        value={reserva.fechaEntrada}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="horaEntrada" className="mb-2 block text-sm font-medium">
                         Hora de Entrada
@@ -135,7 +190,6 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="fechaSalida" className="mb-2 block text-sm font-medium">
                         Fecha de Salida
@@ -149,7 +203,6 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="horaSalida" className="mb-2 block text-sm font-medium">
                         Hora de Salida
@@ -163,7 +216,6 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="importe" className="mb-2 block text-sm font-medium">
                         Importe
@@ -177,36 +229,71 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="importe" className="mb-2 block text-sm font-medium">
                         Importe Extra
                     </label>
                     <input
                         type="number"
-                        id="importe"
-                        name="importe"
+                        id="importeExtras"
+                        name="importeExtras"
                         value={formData.importeExtras}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label htmlFor="estadoReserva" className="mb-2 block text-sm font-medium">
                         Estado de la Reserva
                     </label>
-                    <input
+                    <select
                         id="estadoReserva"
-                        type="text"
                         name="estadoReserva"
                         value={formData.estadoReserva}
                         onChange={handleChange}
-                        className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
+                        className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     >
-                    </input>
+                        <option value="">Selecciona un Estado</option>
+                        {estados.map(estado => (
+                            <option key={estado.id} value={estado.id}>
+                                {estado.nombre}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
+            {saveSuccess && (
+                <div className="fixed inset-0 z-10 overflow-y-auto">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div className="sm:flex sm:items-start">
+                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                                        <svg className="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                        <h3 className="text-lg leading-6 font-medium text-gray-900">¡Éxito!</h3>
+                                        <div className="mt-2">
+                                            <p className="text-sm text-gray-500">La reserva se actualizó correctamente.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button onClick={handleModalOk} type="button" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Ok
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="mt-6 flex justify-end gap-4">
                 <Link
                     href="/dashboard/bookings"

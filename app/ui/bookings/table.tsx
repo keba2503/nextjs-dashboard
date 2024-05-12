@@ -69,10 +69,10 @@ export default function TablaReservas({ query }: Props) {
                                 <td className="px-4 py-3 whitespace-nowrap">
                                     <p>{reserva.nombreCliente}</p>
                                 </td>
-                                <td className="px-3 py-3">{getCamperClass(reserva.camperId)}</td>
+                                <td className="px-3 py-3">{reserva.camperLabel}</td>
                                 <td className="px-3 py-3">{formatCurrency(reserva.importe)}</td>
-                                <td className="px-3 py-3">{reserva.estadoReserva}</td>
-                                <td className="px-3 py-3">{reserva.plataforma}</td>
+                                <td className="px-3 py-3">{reserva.estadoReservaLabel}</td>
+                                <td className="px-3 py-3">{reserva.plataformaLabel}</td>
                                 <td className="px-3 py-3">{formatDateToLocal(reserva.fechaEntrada)}</td>
                                 <td className="px-3 py-3">{formatDateToLocal(reserva.fechaSalida)}</td>
                                 <td className="py-3 pl-6 pr-3">
