@@ -4,13 +4,17 @@ import {useEffect, useState} from 'react';
 import {Camper, Estado, Plataforma, Reserva} from '@/app/lib/definitions';
 import Link from 'next/link';
 import {Button} from '@/app/ui/button';
-import {formatDateToLocal} from "@/app/lib/utils";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import {formatCurrency} from "@/app/lib/utils";
 
 export default function EditBookingForm({reserva}: { reserva: Reserva }) {
     const [campers, setCampers] = useState<Camper[]>([]);
     const [estados, setEstados] = useState<Estado[]>([]);
     const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [fechaEntrada, setFechaEntrada] = useState<Date | null>(new Date(reserva.fechaEntrada));
+    const [fechaSalida, setFechaSalida] = useState<Date | null>(new Date(reserva.fechaSalida));
 
     const [formData, setFormData] = useState({
         camperId: reserva.camperId,
@@ -40,12 +44,19 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
+            const importeNumero = parseInt(String(formData.importe));
+            const importeExtrasNumero = parseInt(String(formData.importeExtras));
+            const totalConExtras = importeNumero + importeExtrasNumero;
+
             const response = await fetch(`/api/bookings/${reserva.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                        ...formData,
+                        pagototalConextras : totalConExtras
+                }),
             });
             if (response.ok) {
                 setSaveSuccess(true);
@@ -90,30 +101,33 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
         fetchData();
     }, []);
 
-    const [fechaEntrada, setFechaEntrada] = useState<Date | null>(new Date());
-
-    const handleChangeDate = (date: Date | null) => {
-        setFechaEntrada(date);
-    };
+    useEffect(() => {
+        // @ts-ignore
+        setFormData(prevState => ({
+            ...prevState,
+            fechaEntrada: fechaEntrada,
+            fechaSalida: fechaSalida
+        }));
+    }, [fechaEntrada, fechaSalida]);
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="rounded-md bg-gray-50 p-4 md:p-6">
                 <div className="mb-4">
-                    <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Nombre del cliente
                     </label>
                     <input
                         type="text"
-                        id="fechaEntrada"
-                        name="fechaEntrada"
-                        value={reserva.nombreCliente}
+                        id="nombreCliente"
+                        name="nombreCliente"
+                        value={formData.nombreCliente}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Plataforma
                     </label>
                     <select
@@ -132,20 +146,20 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     </select>
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Días de reserva
                     </label>
                     <input
                         type="text"
-                        id="fechaEntrada"
-                        name="fechaEntrada"
-                        value={reserva.dias}
+                        id="dias"
+                        name="dias"
+                        value={formData.dias}
                         onChange={handleChange}
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Camper
                     </label>
                     <select
@@ -168,17 +182,15 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     <label htmlFor="fechaEntrada" className="mb-2 block text-sm font-medium">
                         Fecha de Entrada
                     </label>
-                    <input
-                        type="date"
-                        id="fechaEntrada"
-                        name="fechaEntrada"
-                        value={reserva.fechaEntrada}
-                        onChange={handleChange}
+                    <DatePicker
+                        selected={fechaEntrada}
+                        onChange={date => setFechaEntrada(date)}
+                        dateFormat="dd/MM/yyyy"
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="horaEntrada" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Hora de Entrada
                     </label>
                     <input
@@ -191,20 +203,18 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="fechaSalida" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Fecha de Salida
                     </label>
-                    <input
-                        type="text"
-                        id="fechaSalida"
-                        name="fechaSalida"
-                        value={formatDateToLocal(reserva.fechaSalida)}
-                        onChange={handleChange}
+                    <DatePicker
+                        selected={fechaSalida}
+                        onChange={date => setFechaSalida(date)}
+                        dateFormat="dd/MM/yyyy"
                         className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-sm outline-2 placeholder:text-gray-500"
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="horaSalida" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Hora de Salida
                     </label>
                     <input
@@ -230,7 +240,7 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="importe" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Importe Extra
                     </label>
                     <input
@@ -243,7 +253,7 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="estadoReserva" className="mb-2 block text-sm font-medium">
+                    <label className="mb-2 block text-sm font-medium">
                         Estado de la Reserva
                     </label>
                     <select
@@ -261,6 +271,14 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                         ))}
                     </select>
                 </div>
+                <div className="mb-4">
+                    <label className="mb-2 block text-sm font-medium">
+                        Total (con extras)
+                    </label>
+                    <span className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 pr-10 text-lg font-bold text-green-600">
+                        {formatCurrency(formData.pagoTotalConExtras)}
+                    </span>
+                </div>
             </div>
             {saveSuccess && (
                 <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -274,7 +292,7 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
                                 <div className="sm:flex sm:items-start">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                                         <svg className="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
                                         </svg>
                                     </div>
                                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -296,7 +314,7 @@ export default function EditBookingForm({reserva}: { reserva: Reserva }) {
             )}
             <div className="mt-6 flex justify-end gap-4">
                 <Link
-                    href="/dashboard/bookings"
+                    href="/dashboard/bookings/"
                     className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
                 >
                     Cancel
