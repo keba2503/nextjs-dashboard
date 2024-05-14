@@ -33,7 +33,7 @@ const pool = mysql.createPool(dbConfig);
 
 export async function fetchAllUsers() {
     try {
-        const [rows, fields] = await pool.query('SELECT * FROM user');
+        const [rows, fields] = await pool.query('SELECT * FROM users');
 
         return rows;
     } catch (error) {
@@ -42,6 +42,30 @@ export async function fetchAllUsers() {
     }
 }
 
+export async function fetchAllbookings() {
+    try {
+        const [rows, fields] = await pool.query(`
+            SELECT 
+                Booking.*, 
+                Camper.nombre AS camperLabel, 
+                plataforma.nombre AS plataformaLabel, 
+                estado.nombre AS estadoReservaLabel
+            FROM 
+                Booking
+            LEFT JOIN 
+                Camper ON Booking.camperId = Camper.id
+            LEFT JOIN 
+                plataforma ON Booking.plataforma = plataforma.id
+            LEFT JOIN 
+                estado ON Booking.estadoReserva = estado.id
+        `);
+
+        return rows;
+    } catch (error) {
+        console.error('Database Error:', error);
+        throw new Error('Failed to fetch user data.');
+    }
+}
 
 const ITEMS_PER_PAGE = 6;
 

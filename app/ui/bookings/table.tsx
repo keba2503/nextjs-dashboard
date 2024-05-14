@@ -1,34 +1,16 @@
-'use client'
+import {fetchAllbookings, fetchAllUsers} from "@/app/lib/data";
+import {formatCurrency, formatDateToLocal} from "@/app/lib/utils";
+import {DeleteInvoice, UpdateInvoice} from "@/app/ui/bookings/buttons";
 
-import { useEffect, useState } from 'react';
-import { DeleteInvoice, UpdateInvoice } from '@/app/ui/bookings/buttons';
-import {formatCurrency, formatDateToLocal, getCamperClass} from '@/app/lib/utils';
-import {Reserva} from '@/app/lib/definitions'
 
 interface Props {
     query: string;
 }
+export default async function TablaReservas({ query }: Props) {
 
-export default function TablaReservas({ query }: Props) {
-    const [reservas, setReservas] = useState<Reserva[]>([]);
-
-    useEffect(() => {
-        const fetchReservas = async () => {
-            try {
-                const response = await fetch('/api/bookings');
-                if (response.ok) {
-                    const data = await response.json();
-                    setReservas(data);
-                } else {
-                    throw new Error('Error al obtener los datos');
-                }
-            } catch (error) {
-                console.error('Error al obtener los datos:', error);
-            }
-        };
-
-        fetchReservas();
-    }, []);
+    // @ts-ignore
+    const latestBooking : Booking[] = await fetchAllbookings();
+    console.log(latestBooking)
 
     return (
         <div className="mt-6 flow-root">
@@ -64,7 +46,7 @@ export default function TablaReservas({ query }: Props) {
                         </tr>
                         </thead>
                         <tbody className="bg-white">
-                        {reservas.map((reserva) => (
+                        {latestBooking.map((reserva) => (
                             <tr key={reserva.id} className="border-b">
                                 <td className="px-4 py-3 whitespace-nowrap">
                                     <p>{reserva.nombreCliente}</p>
