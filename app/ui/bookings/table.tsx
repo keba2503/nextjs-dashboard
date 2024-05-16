@@ -10,7 +10,6 @@ export default async function TablaReservas({ query }: Props) {
 
     // @ts-ignore
     const latestBooking : Booking[] = await fetchAllbookings();
-    console.log(latestBooking)
 
     return (
         <div className="mt-6 flow-root">
